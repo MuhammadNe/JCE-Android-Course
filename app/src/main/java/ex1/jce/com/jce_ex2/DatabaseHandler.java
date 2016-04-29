@@ -84,4 +84,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return cursor;
     }
 
+    public Cursor getLocation(int position) {
+
+        String selectQuery = "SELECT * FROM " + TABLE_LOCATION
+                + " WHERE " + KEY_ID + " = " + position;
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        return cursor;
+    }
 }

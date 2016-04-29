@@ -23,7 +23,7 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private GoogleApiClient googleApiClient; // Object that is used to connect to google maps API, must be built to use fused location
     private LocationRequest locationRequest; //Object that requests a quality of service for location updates from fused location
@@ -31,8 +31,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     final private int PERMISSION_REQUEST_CODE = 1;
 
-    String[] items = {"potato", "banana", "bumbum", "nym nym", "flimch"};
-    ArrayAdapter<String> arrayAdapter;
+    DatabaseHandler db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,20 +46,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 .addOnConnectionFailedListener(this)
                 .build();
 
-        //arrayAdapter = new ArrayAdapter<String>(getApplicationContext(),android.R.layout.simple_list_item_1);
-        //arrayAdapter.add("potato");
-        //listView.setAdapter(arrayAdapter);
-        //listView.setOnItemClickListener(this);
+        db = new DatabaseHandler(this);
 
-        DatabaseHandler db = new DatabaseHandler(this);
-
-        db.addLocation(new LocationData("lala", "nym", "madafaka"));
-        db.addLocation(new LocationData("iddqd", "idkfa", "idclip"));
+        //db.addLocation(new LocationData("lala", "nym", "madafaka"));
+        //db.addLocation(new LocationData("iddqd", "idkfa", "idclip"));
         /**
          * CRUD Operations
          * */
         Cursor cursor = db.getAllLocations();
-        while(cursor.moveToNext()) {
+        while (cursor.moveToNext()) {
             System.out.print(cursor.getString(0) + " / ");
             System.out.print(cursor.getString(1) + " / ");
             System.out.print(cursor.getString(2) + " / ");
@@ -70,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         CustomCursorAdapter customCursorAdapter = new CustomCursorAdapter(getApplicationContext(), cursor);
         listView.setAdapter(customCursorAdapter);
-
+        listView.setOnItemClickListener(this);
 
     }
 
@@ -80,7 +74,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onResume();
 
         // Check if user granted permissions
-       if(checkPermissions()) {
+        if (checkPermissions()) {
             //System.out.println("Permission Check : " + access_fine_location_permissionCheck);
             System.out.println("> Permissions are GRANTED.");
             System.out.println("> Connecting googleApiClient.");
@@ -98,6 +92,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onPause();
         googleApiClient.disconnect();
     }
+
     protected void onStop() {
 
         super.onStop();
@@ -105,15 +100,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
 
-
-   private boolean checkPermissions() {
+    private boolean checkPermissions() {
 
         System.out.println("> Checking Permissions : ");
 
         int access_fine_location_permissionCheck = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION);
         int Internet_permissionCheck = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.INTERNET);
 
-        if(access_fine_location_permissionCheck == 0 && Internet_permissionCheck == 0) {
+        if (access_fine_location_permissionCheck == 0 && Internet_permissionCheck == 0) {
             return true;
         } else {
             return false;
@@ -121,9 +115,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     public void onRequestPermissionsResult(int request_code, String[] permissions, int[] results) {
-        switch(request_code) {
-            case PERMISSION_REQUEST_CODE : {
-                if(results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED && results[1] == PackageManager.PERMISSION_GRANTED) {
+        switch (request_code) {
+            case PERMISSION_REQUEST_CODE: {
+                if (results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED && results[1] == PackageManager.PERMISSION_GRANTED) {
 
                     Log.w("MainActivity", "Permissions Granted");
                     googleApiClient.connect();
@@ -133,8 +127,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
         }
     }
-
-
 
 
     @Override
@@ -162,9 +154,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     public void onLocationChanged(Location location) {
 
-        if(location != null) {
+        if (location != null) {
             //if(oldLocation != null)
-                System.out.println(location.getLatitude() + " // " + location.getLongitude());
+            System.out.println(location.getLatitude() + " // " + location.getLongitude());
         } else {
             System.out.println("> Location = NULL");
         }
@@ -173,9 +165,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
+        Cursor cursor = db.getLocation(position + 1);
 
+        cursor.moveToFirst();
+
+        System.out.print(cursor.getString(0) + " / ");
+        System.out.print(cursor.getString(1) + " / ");
+        System.out.print(cursor.getString(2) + " / ");
+        System.out.println(cursor.getString(3));
+
+
+        System.out.println("Position : " + position);
     }
-
 
 
 }

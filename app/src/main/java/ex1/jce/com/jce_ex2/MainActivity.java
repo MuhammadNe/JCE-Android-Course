@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.database.MatrixCursor;
 import android.location.Location;
 import android.net.Uri;
 import android.provider.Settings;
@@ -23,6 +24,9 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
+import java.security.Timestamp;
+import java.util.Date;
+
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private GoogleApiClient googleApiClient; // Object that is used to connect to google maps API, must be built to use fused location
@@ -32,13 +36,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     final private int PERMISSION_REQUEST_CODE = 1;
 
     DatabaseHandler db;
+    Cursor cursor;
+    ListView listView;
+    CustomCursorAdapter customCursorAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ListView listView = (ListView) findViewById(R.id.listView);
+        listView = (ListView) findViewById(R.id.listView);
         //build google api client for fused location method
         googleApiClient = new GoogleApiClient.Builder(getApplicationContext())
                 .addApi(LocationServices.API)
@@ -48,12 +55,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         db = new DatabaseHandler(this);
 
-        //db.addLocation(new LocationData("lala", "nym", "madafaka"));
-        //db.addLocation(new LocationData("iddqd", "idkfa", "idclip"));
+
         /**
          * CRUD Operations
          * */
-        Cursor cursor = db.getAllLocations();
+        cursor = db.getAllLocations();
         while (cursor.moveToNext()) {
             System.out.print(cursor.getString(0) + " / ");
             System.out.print(cursor.getString(1) + " / ");
@@ -62,9 +68,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         }
 
-        CustomCursorAdapter customCursorAdapter = new CustomCursorAdapter(getApplicationContext(), cursor);
+        customCursorAdapter = new CustomCursorAdapter(getApplicationContext(), cursor);
         listView.setAdapter(customCursorAdapter);
         listView.setOnItemClickListener(this);
+
 
     }
 
@@ -156,6 +163,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         if (location != null) {
             //if(oldLocation != null)
+
+            db.addLocation(new LocationData(Double.toString(location.getLatitude()), Double.toString(location.getLongitude()), Long.toString(System.currentTimeMillis())));
+            cursor = db.getAllLocations();
+            customCursorAdapter.changeCursor(cursor);
+           // customCursorAdapter = new CustomCursorAdapter(getApplicationContext(), cursor);
+           // listView.setAdapter(customCursorAdapter);
+
+
+
             System.out.println(location.getLatitude() + " // " + location.getLongitude());
         } else {
             System.out.println("> Location = NULL");

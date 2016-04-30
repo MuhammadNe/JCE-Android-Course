@@ -79,14 +79,20 @@
                     android:layout_height="match_parent"
                     android:hint="Time"
                     android:inputType="date"
-                    android:textColorHint="#4d6edc"
-                    />
+                    android:textColorHint="#4d6edc" />
             </RelativeLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_weight="0.6"></LinearLayout>
+                android:layout_weight="0.6">
+
+                <Button
+                    android:id="@+id/deleteQuery"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="Empty Table" />
+            </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>
@@ -110,14 +116,15 @@
         android:layout_weight="0.6">
 
         <TextView
+            android:id="@+id/addressTV"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:textColor="#FF4D6EDC"
-            android:text="Address : "
-            android:gravity="center_vertical"
-            android:layout_alignParentTop="true"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true" />
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:gravity="center_vertical"
+            android:text="Address : "
+            android:textColor="#FF4D6EDC" />
 
 
     </RelativeLayout>

@@ -94,4 +94,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         return cursor;
     }
+
+    public void emptyTable() {
+
+        String deleteQuery = "DELETE FROM " + TABLE_LOCATION + ";";
+        getWritableDatabase().execSQL(deleteQuery);
+    }
 }

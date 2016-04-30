@@ -1,13 +1,17 @@
 package ex1.jce.com.jce_ex2;
 
 import android.Manifest;
-import android.content.Intent;
+import android.app.ProgressDialog;
+
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.database.MatrixCursor;
+
+
+import android.location.Address;
+import android.location.Geocoder;
+
 import android.location.Location;
-import android.net.Uri;
-import android.provider.Settings;
+import android.os.AsyncTask;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -15,17 +19,22 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
-import java.security.Timestamp;
-import java.util.Date;
+
+import java.io.IOException;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
@@ -37,8 +46,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     DatabaseHandler db;
     Cursor cursor;
-    ListView listView;
     CustomCursorAdapter customCursorAdapter;
+
+    ListView listView;
+    Button button;
+    TextView addressTV;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +58,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         setContentView(R.layout.activity_main);
 
         listView = (ListView) findViewById(R.id.listView);
+        button = (Button) findViewById(R.id.deleteQuery);
+        addressTV = (TextView) findViewById(R.id.addressTV);
         //build google api client for fused location method
         googleApiClient = new GoogleApiClient.Builder(getApplicationContext())
                 .addApi(LocationServices.API)
@@ -54,7 +68,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 .build();
 
         db = new DatabaseHandler(this);
-
 
         /**
          * CRUD Operations
@@ -73,6 +86,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         listView.setOnItemClickListener(this);
 
 
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                db.emptyTable();
+
+                cursor = db.getAllLocations();
+                customCursorAdapter.changeCursor(cursor);
+
+            }
+        });
     }
 
 
@@ -164,12 +187,19 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         if (location != null) {
             //if(oldLocation != null)
 
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(System.currentTimeMillis());
+            int mYear = calendar.get(Calendar.YEAR);
+            int mMonth = calendar.get(Calendar.MONTH) + 1;
+            int mDay = calendar.get(Calendar.DAY_OF_MONTH);
+            int mDay1 = calendar.get(Calendar.HOUR_OF_DAY);
+            int mDay21 = calendar.get(Calendar.MINUTE);
+
             db.addLocation(new LocationData(Double.toString(location.getLatitude()), Double.toString(location.getLongitude()), Long.toString(System.currentTimeMillis())));
             cursor = db.getAllLocations();
             customCursorAdapter.changeCursor(cursor);
-           // customCursorAdapter = new CustomCursorAdapter(getApplicationContext(), cursor);
-           // listView.setAdapter(customCursorAdapter);
-
+            // customCursorAdapter = new CustomCursorAdapter(getApplicationContext(), cursor);
+            // listView.setAdapter(customCursorAdapter);
 
 
             System.out.println(location.getLatitude() + " // " + location.getLongitude());
@@ -181,18 +211,88 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-        Cursor cursor = db.getLocation(position + 1);
+        cursor = db.getLocation(position + 1);
 
         cursor.moveToFirst();
 
+        int lat_index = cursor.getColumnIndex("KEY_LAT");
+        int lng_index = cursor.getColumnIndex("KEY_LNG");
+
+        System.out.println("Column names : " + cursor.getColumnNames().toString());
         System.out.print(cursor.getString(0) + " / ");
         System.out.print(cursor.getString(1) + " / ");
         System.out.print(cursor.getString(2) + " / ");
         System.out.println(cursor.getString(3));
 
-
+        GetAddress getAddress = new GetAddress(Double.parseDouble(cursor.getString(1)), Double.parseDouble(cursor.getString(2)));
+        getAddress.execute();
         System.out.println("Position : " + position);
     }
 
+
+    class GetAddress extends AsyncTask<Void, Void, String> {
+
+        private double lat;
+        private double lng;
+        private ProgressDialog progress;
+
+        public GetAddress(double lat, double lng) {
+
+            this.lat = lat;
+            this.lng = lng;
+        }
+
+        public List<Address> getFromLocation(double lat, double lng, int maxResult) throws IOException {
+
+            Geocoder geocoder;
+            List<Address> addresses;
+            geocoder = new Geocoder(MainActivity.this, Locale.getDefault());
+
+            addresses = geocoder.getFromLocation(lat, lng, maxResult);
+
+            return addresses;
+        }
+
+        protected void onPreExecute() {
+
+            progress = new ProgressDialog(MainActivity.this);
+            progress.setMessage("Getting address");
+            progress.setIndeterminate(true);
+            progress.show();
+        }
+
+        @Override
+        protected String doInBackground(Void... params) {
+            String address_string = "";
+            try {
+
+                //getFromLocation(31.803052, 35.211399, 1);
+                if (getFromLocation(lat, lng, 1).size() > 0) {
+
+                    Address address = getFromLocation(lat, lng, 1).get(0);
+                    System.out.println("Address : " + address);
+                    for (int i = 0; i <= address.getMaxAddressLineIndex(); i++) {
+                        address_string += address.getAddressLine(i).toString() + ", ";
+                    }
+                    if (address_string.endsWith(", ")) {
+                        address_string = address_string.substring(0, address_string.length() - 2);
+                    }
+                    address_string += ".";
+                } else {
+                    address_string = "Unavailable";
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return address_string;
+        }
+
+        protected void onPostExecute(String content) {
+
+            System.out.println("Content onPostExecute : " + content);
+            addressTV.setText("Address : " + content);
+            progress.dismiss();
+        }
+    }
 
 }

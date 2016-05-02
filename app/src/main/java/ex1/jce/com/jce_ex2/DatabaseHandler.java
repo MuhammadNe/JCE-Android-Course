@@ -95,6 +95,60 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return cursor;
     }
 
+    public Cursor searchLocation(String lat, String lng, String time) {
+
+
+        String searchQuery = "SELECT * FROM " + TABLE_LOCATION + " WHERE ";
+        if (!lat.isEmpty()) {
+            searchQuery += KEY_LAT + " LIKE '" + lat + "%' AND";
+        }
+        if (!lng.isEmpty()) {
+            searchQuery += KEY_LNG + " LIKE '" + lng + "%' AND";
+        }
+        if (!time.isEmpty()) {
+            searchQuery += KEY_TIME + " LIKE '" + time + "%';";
+        }
+        if (searchQuery.endsWith("AND")) {
+            searchQuery = searchQuery.substring(0, searchQuery.length() - 3);
+        }
+
+/*
+        String searchQuery = new String();
+        if (!lat.isEmpty() && lng.isEmpty() && time.isEmpty()) {
+            searchQuery = "SELECT * FROM + " + TABLE_LOCATION
+                    + " WHERE " + KEY_LAT + " LIKE " + lat + "%";
+        }
+        if (lat.isEmpty() && !lng.isEmpty() && time.isEmpty()) {
+            searchQuery = "SELECT * FROM + " + TABLE_LOCATION
+                    + " WHERE " + KEY_LNG + " LIKE " + lng + "%";
+        }
+        if (lat.isEmpty() && lng.isEmpty() && !time.isEmpty()) {
+            searchQuery = "SELECT * FROM + " + TABLE_LOCATION
+                    + " WHERE " + KEY_TIME + " LIKE " + time + "%";
+        }
+        if (!lat.isEmpty() && !lng.isEmpty() && time.isEmpty()) {
+            searchQuery = "SELECT * FROM + " + TABLE_LOCATION
+                    + " WHERE " + KEY_LAT + " LIKE " + lat + "% "
+                    + " AND " + KEY_LNG + " LIKE " + lng + "%";
+        }
+        if (!lat.isEmpty() && lng.isEmpty() && !time.isEmpty()) {
+            searchQuery = "SELECT * FROM + " + TABLE_LOCATION
+                    + " WHERE " + KEY_LAT + " LIKE " + lat + "% "
+                    + " AND " + KEY_TIME + " LIKE " + time + "%";
+        }
+        if (!lat.isEmpty() && !lng.isEmpty() && !time.isEmpty()) {
+            searchQuery = "SELECT * FROM + " + TABLE_LOCATION
+                    + " WHERE " + KEY_LAT + " = " + lat
+                    + " AND " + KEY_LNG + " LIKE " + lng + "%"
+                    + " AND " + KEY_TIME + " LIKE " + time + "%";
+        }
+*/
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(searchQuery, null);
+        return cursor;
+
+    }
+
     public void emptyTable() {
 
         String deleteQuery = "DELETE FROM " + TABLE_LOCATION + ";";

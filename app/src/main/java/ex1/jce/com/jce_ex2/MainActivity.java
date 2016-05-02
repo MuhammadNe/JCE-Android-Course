@@ -20,8 +20,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -50,7 +52,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     ListView listView;
     Button button;
+    Button searchB;
     TextView addressTV;
+
+    EditText latED, lngED, timeED;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +64,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         listView = (ListView) findViewById(R.id.listView);
         button = (Button) findViewById(R.id.deleteQuery);
+        searchB = (Button) findViewById(R.id.search);
         addressTV = (TextView) findViewById(R.id.addressTV);
+        latED = (EditText) findViewById(R.id.latED);
+        lngED = (EditText) findViewById(R.id.lngED);
+        timeED = (EditText) findViewById(R.id.timeED);
+
         //build google api client for fused location method
         googleApiClient = new GoogleApiClient.Builder(getApplicationContext())
                 .addApi(LocationServices.API)
@@ -69,9 +79,20 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         db = new DatabaseHandler(this);
 
+        db.addLocation(new LocationData("14.1111", "14.1112", "01-02-2016"));
+        db.addLocation(new LocationData("14.2221", "14.2222", "01-02-2016"));
+        db.addLocation(new LocationData("23.1111", "23.2222", "04-05-2016"));
+        db.addLocation(new LocationData("23.2333", "24.4444", "04-05-2016"));
+        db.addLocation(new LocationData("32.6666", "32.6666", "06-04-2016"));
+        db.addLocation(new LocationData("32.7777", "32.8888", "07-04-2017"));
+        db.addLocation(new LocationData("14.22345", "15.123123", "07-04-2017"));
+        //db.addLocation(new LocationData("", "", ""));
+
+
         /**
          * CRUD Operations
          * */
+
         cursor = db.getAllLocations();
         while (cursor.moveToNext()) {
             System.out.print(cursor.getString(0) + " / ");
@@ -94,6 +115,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 cursor = db.getAllLocations();
                 customCursorAdapter.changeCursor(cursor);
 
+            }
+        });
+
+        searchB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if (!latED.getText().toString().isEmpty() || !lngED.getText().toString().isEmpty() || !timeED.getText().toString().isEmpty()) {
+                    cursor = db.searchLocation(latED.getText().toString(), lngED.getText().toString(), timeED.getText().toString());
+                    customCursorAdapter.changeCursor(cursor);
+
+                }
             }
         });
     }
@@ -185,24 +218,35 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public void onLocationChanged(Location location) {
 
         if (location != null) {
-            //if(oldLocation != null)
 
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(System.currentTimeMillis());
-            int mYear = calendar.get(Calendar.YEAR);
-            int mMonth = calendar.get(Calendar.MONTH) + 1;
-            int mDay = calendar.get(Calendar.DAY_OF_MONTH);
-            int mDay1 = calendar.get(Calendar.HOUR_OF_DAY);
-            int mDay21 = calendar.get(Calendar.MINUTE);
+            if (oldLocation == null) {
+                oldLocation = location;
+            } else {
+                float distanceInMeters = oldLocation.distanceTo(location);
+                if (distanceInMeters >= 1) {
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.setTimeInMillis(System.currentTimeMillis());
+                    String cYear = Integer.toString(calendar.get(Calendar.YEAR));
+                    String cMonth = Integer.toString(calendar.get(Calendar.MONTH) + 1);
+                    String cDay = Integer.toString(calendar.get(Calendar.DAY_OF_MONTH));
+                    String cHour = Integer.toString(calendar.get(Calendar.HOUR_OF_DAY));
+                    String cMinute = Integer.toString(calendar.get(Calendar.MINUTE));
+                    String cSecond = Integer.toString(calendar.get(Calendar.SECOND));
 
-            db.addLocation(new LocationData(Double.toString(location.getLatitude()), Double.toString(location.getLongitude()), Long.toString(System.currentTimeMillis())));
-            cursor = db.getAllLocations();
-            customCursorAdapter.changeCursor(cursor);
-            // customCursorAdapter = new CustomCursorAdapter(getApplicationContext(), cursor);
-            // listView.setAdapter(customCursorAdapter);
 
 
-            System.out.println(location.getLatitude() + " // " + location.getLongitude());
+                    db.addLocation(new LocationData(Double.toString(location.getLatitude()), Double.toString(location.getLongitude()),cYear + "-" + cMonth + "-" + cDay
+                    + " " + cHour + ":" + cMinute + ":" + cSecond));
+                    cursor = db.getAllLocations();
+                    customCursorAdapter.changeCursor(cursor);
+
+                    System.out.println(location.getLatitude() + " // " + location.getLongitude());
+                    oldLocation = location;
+                } else {
+                    Toast.makeText(getApplicationContext(), distanceInMeters + "", Toast.LENGTH_SHORT).show();
+                }
+            }
+
         } else {
             System.out.println("> Location = NULL");
         }

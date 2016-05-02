@@ -28,6 +28,7 @@
                 android:layout_weight="0.3">
 
                 <EditText
+                    android:id="@+id/latED"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:hint="Latitude"
@@ -42,6 +43,7 @@
                 android:layout_weight="0.3">
 
                 <EditText
+                    android:id="@+id/lngED"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:hint="Longitue"
@@ -56,6 +58,7 @@
                 android:layout_weight="0.3">
 
                 <Button
+                    android:id="@+id/search"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:text="Search" />
@@ -75,9 +78,10 @@
                 android:layout_weight="0.3">
 
                 <EditText
+                    android:id="@+id/timeED"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:hint="Time"
+                    android:hint="Time : dd-mm-yyyy"
                     android:inputType="date"
                     android:textColorHint="#4d6edc" />
             </RelativeLayout>

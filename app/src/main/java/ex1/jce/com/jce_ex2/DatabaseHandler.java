@@ -100,16 +100,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         String searchQuery = "SELECT * FROM " + TABLE_LOCATION + " WHERE ";
         if (!lat.isEmpty()) {
-            searchQuery += KEY_LAT + " LIKE '" + lat + "%' AND";
+            searchQuery += KEY_LAT + " LIKE '" + lat + "%' AND ";
         }
         if (!lng.isEmpty()) {
-            searchQuery += KEY_LNG + " LIKE '" + lng + "%' AND";
+            searchQuery += KEY_LNG + " LIKE '" + lng + "%' AND ";
         }
         if (!time.isEmpty()) {
             searchQuery += KEY_TIME + " LIKE '" + time + "%';";
         }
-        if (searchQuery.endsWith("AND")) {
-            searchQuery = searchQuery.substring(0, searchQuery.length() - 3);
+        if (searchQuery.endsWith("AND ")) {
+            searchQuery = searchQuery.substring(0, searchQuery.length() - 4);
         }
 
 /*

@@ -223,7 +223,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 oldLocation = location;
             } else {
                 float distanceInMeters = oldLocation.distanceTo(location);
-                if (distanceInMeters >= 1) {
+                if (distanceInMeters >= 1.0) {
+                    Toast.makeText(getApplicationContext(), distanceInMeters + "", Toast.LENGTH_SHORT).show();
                     Calendar calendar = Calendar.getInstance();
                     calendar.setTimeInMillis(System.currentTimeMillis());
                     String cYear = Integer.toString(calendar.get(Calendar.YEAR));

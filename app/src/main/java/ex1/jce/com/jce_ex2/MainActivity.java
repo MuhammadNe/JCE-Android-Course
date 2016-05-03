@@ -213,7 +213,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
                 // check if distance between locations is more than 1M
                 float distanceInMeters = oldLocation.distanceTo(location);
-                Toast.makeText(getApplicationContext(), distanceInMeters + "", Toast.LENGTH_SHORT).show();
+               // Toast.makeText(getApplicationContext(), distanceInMeters + "", Toast.LENGTH_SHORT).show();
                 if (distanceInMeters >= 1.0) {
                     // Get the time using Calendar class, result is in Millisecond
                     // Parse the result to get all the data.

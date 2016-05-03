@@ -112,6 +112,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             public void onClick(View v) {
                 db.emptyTable();
 
+                db = new DatabaseHandler(getApplicationContext());
                 cursor = db.getAllLocations();
                 customCursorAdapter.changeCursor(cursor);
 
@@ -260,10 +261,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         cursor.moveToFirst();
 
-        int lat_index = cursor.getColumnIndex("KEY_LAT");
-        int lng_index = cursor.getColumnIndex("KEY_LNG");
-
-        System.out.println("Column names : " + cursor.getColumnNames().toString());
         System.out.print(cursor.getString(0) + " / ");
         System.out.print(cursor.getString(1) + " / ");
         System.out.print(cursor.getString(2) + " / ");

@@ -151,7 +151,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public void emptyTable() {
 
-        String deleteQuery = "DELETE FROM " + TABLE_LOCATION + ";";
+        //String deleteQuery = "DELETE FROM " + TABLE_LOCATION + ";";
+        String deleteQuery = "DROP TABLE " + TABLE_LOCATION + ";";
         getWritableDatabase().execSQL(deleteQuery);
+        String CREATE_CONTACTS_TABLE = "CREATE TABLE " + TABLE_LOCATION + "("
+                + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + KEY_LAT + " TEXT,"
+                + KEY_LNG + " TEXT,"
+                + KEY_TIME + " TEXT" + ")";
+        getWritableDatabase().execSQL(CREATE_CONTACTS_TABLE);
     }
 }

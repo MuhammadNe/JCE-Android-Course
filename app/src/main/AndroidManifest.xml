@@ -21,7 +21,7 @@
         </activity>
 
         <!-- Register the Alarm Receiver -->
-        <receiver android:name=".AlarmReciever"/>
+        <receiver android:name=".AlarmReceiver"/>
     </application>
 
 

@@ -7,6 +7,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -44,7 +45,11 @@ import org.json.JSONObject;
 import java.lang.reflect.Array;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
@@ -61,16 +66,40 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private ListView listView;
 
     private boolean checkSearch = false;
+    private boolean clickable = true;
 
     final private int PERMISSION_REQUEST_CODE = 1; // request code for permissions
 
-
+    private static int counter = 0;
+    private SharedPreferencesHelper sharedPreferencesHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+        if (getIntent().getBooleanExtra("alarm", false)) {
+            clickable = false;
+            Show show = new Show();
+
+            show.setName(getIntent().getStringExtra("name"));
+            System.out.println("111111111111111111111111 : " + show.getName());
+
+
+            show.setSummary(getIntent().getStringExtra("summary"));
+            System.out.println("222222222222222222222222 : " + show.getSummary());
+
+
+            show.setThumbnailUrl(getIntent().getStringExtra("image"));
+
+            System.out.println("333333333333333333333333: " + show.getThumbnailUrl());
+
+            showList.add(show);
+        }
+
+        sharedPreferencesHelper = new SharedPreferencesHelper(getApplicationContext());
+        sharedPreferencesHelper.getCounter("counter");
 
         // Defining views
         searchED = (EditText) findViewById(R.id.searchED);
@@ -89,6 +118,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 // Check if the search edit text is not empty
                 if (!searchED.getText().toString().isEmpty() || !searchED.getText().toString().matches("")) {
 
+                    clickable = true;
                     checkSearch = true;
                     String searchQ = searchED.getText().toString();
                     show_getHttp(searchQ);
@@ -105,6 +135,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         super.onResume();
 
+
+        /*
         // Check if user granted permissions
         if (checkPermissions()) {
 
@@ -114,6 +146,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             String[] permissions = {Manifest.permission.SET_ALARM};
             ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE);
         }
+        */
     }
 
     // Function to check permissions
@@ -144,33 +177,110 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        if (checkSearch) {
-            episode_getHttp(showList.get(position).getShowID());
-            checkSearch = false;
-        } else {
-            scheduleAlarm();
+        if (clickable) {
+            if (checkSearch) {
+                episode_getHttp(showList.get(position).getShowID());
+                checkSearch = false;
+            } else {
+                //SchedualAlarm schedualAlarm = new SchedualAlarm(getApplicationContext(), showList.get(position));
+                //schedualAlarm.scheduleAlarm(checkTime(position));
+                scheduleAlarm(position, checkTime(position));
+
+            }
         }
     }
 
-    public void scheduleAlarm()
-    {
+    private long checkTime(int position) {
+
+        Long time = new GregorianCalendar().getTimeInMillis();
+
+        String[] EpisodeDate = showList.get(position).getAir_date().split("-");
+        String[] EpisodeTime = showList.get(position).getAir_time().split(":");
+
+        int episodeYear;
+        int episodeMonth;
+        int episodeDay;
+        int episodeHour;
+
+
+        episodeYear = Integer.parseInt(EpisodeDate[0]);
+        episodeMonth = Integer.parseInt(EpisodeDate[1]);
+        episodeDay = Integer.parseInt(EpisodeDate[2]);
+        episodeHour = Integer.parseInt(EpisodeTime[0]);
+
+
+        //if (episodeYear >= currentYear) {
+        //    if (episodeMonth >= currentMonth) {
+        //        if (episodeDay >= currentDay) {
+        //            if (episodeHour > currentHour) {
+
+        String tempDate = episodeMonth + "." + episodeDay + "." + episodeYear;
+        SimpleDateFormat tempDateConvert = new SimpleDateFormat("MM.dd.yyyy");
+
+
+        try {
+            Date date = tempDateConvert.parse(tempDate);
+            System.out.println("date.getTime : " + date.getTime());
+            if ((date.getTime() + (episodeHour * 60 * 60 * 1000)) - time > 0) {
+                return (date.getTime() + (episodeHour * 60 * 60 * 1000));
+            } else {
+                return -1;
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return -1;
+        }
+
+        //          }
+        //        }
+        //    }
+        //}
+
+    }
+
+    public void scheduleAlarm(int position, long delay) {
         // time at which alarm will be scheduled here alarm is scheduled at 1 day from current time,
         // we fetch  the current time in milliseconds and added 1 day time
-        // i.e. 24*60*60*1000= 86,400,000   milliseconds in a day
-        Long time = new GregorianCalendar().getTimeInMillis()+1*1*1*5000;
+        // i.e. 24*60*60*1000= 86,400,000  milliseconds in a day
 
-        // create an Intent and set the class which will execute when Alarm triggers, here we have
-        // given AlarmReciever in the Intent, the onRecieve() method of this class will execute when
-        // alarm triggers and
-        //we will write the code to send SMS inside onRecieve() method pf Alarmreciever class
-        Intent intentAlarm = new Intent(this, AlarmReciever.class);
+        System.out.println("======= " + delay);
+        if (delay > 0) {
 
-        // create the object
-        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(delay);
 
-        //set the alarm for particular time
-        alarmManager.set(AlarmManager.RTC_WAKEUP,time, PendingIntent.getBroadcast(this,1,  intentAlarm, PendingIntent.FLAG_UPDATE_CURRENT));
-        Toast.makeText(this, "Alarm Scheduled for Tommrrow", Toast.LENGTH_LONG).show();
+
+            // create an Intent and set the class which will execute when Alarm triggers, here we have
+            // given AlarmReceiver in the Intent, the onRecieve() method of this class will execute when
+            // alarm triggers and
+            //we will write the code to send SMS inside onRecieve() method pf Alarmreceiver class
+            Intent intentAlarm = new Intent(this, AlarmReceiver.class);
+            intentAlarm.putExtra("name", showList.get(position).getName());
+            intentAlarm.putExtra("summary", showList.get(position).getSummary());
+            intentAlarm.putExtra("image", showList.get(position).getThumbnailUrl());
+
+
+            //Show show = new Show();
+            //show.setName(showList.get(position).getName());
+            //show.setSummary(showList.get(position).getSummary());
+            //show.setThumbnailUrl(showList.get(position).getThumbnailUrl());
+            //AlarmReceiver alarmReceiver = new AlarmReceiver(show);
+
+            // create the object
+            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            System.out.println("=======222 " + delay);
+
+
+            //set the alarm for particular time
+            alarmManager.set(AlarmManager.RTC_WAKEUP, delay, PendingIntent.getBroadcast(this, counter, intentAlarm, PendingIntent.FLAG_UPDATE_CURRENT));
+            Toast.makeText(this, "Alarm Scheduled for " + calendar.get(Calendar.DAY_OF_MONTH) + "." + (calendar.get(Calendar.MONTH) + 1) + "." + calendar.get(Calendar.YEAR)
+                    + " " + calendar.get(Calendar.HOUR_OF_DAY) + ":" + calendar.get(Calendar.MINUTE), Toast.LENGTH_LONG).show();
+            counter++;
+            sharedPreferencesHelper.setCounter("counter", counter);
+        } else {
+            Toast.makeText(getApplicationContext(), "Episode is finished.", Toast.LENGTH_SHORT).show();
+        }
+
 
     }
 
@@ -204,7 +314,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                                 String airdate = response.getJSONObject("_embedded").getJSONArray("episodes").getJSONObject(i).getString("airdate");
                                 String airtime = response.getJSONObject("_embedded").getJSONArray("episodes").getJSONObject(i).getString("airtime");
                                 String summary = response.getJSONObject("_embedded").getJSONArray("episodes").getJSONObject(i).getString("summary");
-                                summary = summary.replaceAll("<.*?>", "");
+                                //summary = summary.replaceAll("<.*?>", "");
                                 String image = "";
                                 try {
                                     image = response.getJSONObject("_embedded").getJSONArray("episodes").getJSONObject(i).getJSONObject("image").getString("medium");
@@ -291,7 +401,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                                 show.setShowID(showID);
 
                                 String summary = response.getJSONObject(i).getJSONObject("show").getString("summary");
-                                summary = summary.replaceAll("<.*?>", "");
+                                //summary = summary.replaceAll("<.*?>", "");
 
                                 System.out.println("> Summary : " + summary);
                                 show.setSummary(summary);

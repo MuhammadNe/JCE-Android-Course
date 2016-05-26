@@ -2,6 +2,7 @@ package jce_ex3.com.tvguide;
 
 import android.app.Activity;
 import android.content.Context;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -76,7 +77,7 @@ public class CustomListAdapter extends BaseAdapter {
         // title
         nameTV.setText(show.getName());
 
-        summaryTV.setText(show.getSummary());
+        summaryTV.setText(Html.fromHtml(show.getSummary()));
 
         if (show.getSeason_num() != null && show.getEpisode_num() != null && show.getAir_time() != null && show.getAir_date() != null) {
             moreinfoTV.setText(show.getAllInfo());

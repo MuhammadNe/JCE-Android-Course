@@ -6,25 +6,16 @@ import android.content.Intent;
 import android.widget.Toast;
 
 /**
- * Created by Muhammad on 5/23/2016.
+ *  AlarmReceiver class for when the alarm is triggered, it will open the main activity and pass the episode parameters
  */
 public class AlarmReceiver extends BroadcastReceiver
 {
 
-    private static Show show;
-
-    public AlarmReceiver() {
-
-    }
-    public AlarmReceiver(Show show) {
-        this.show = show;
-    }
     @Override
     public void onReceive(Context context, Intent intent)
     {
         // TODO Auto-generated method stub
 
-        // Show the toast  like in above screen shot
         Toast.makeText(context, "Episode Ready!", Toast.LENGTH_LONG).show();
 
         Intent i = new Intent(context, MainActivity.class);

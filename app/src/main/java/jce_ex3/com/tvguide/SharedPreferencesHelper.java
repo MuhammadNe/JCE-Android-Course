@@ -4,10 +4,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import java.util.ArrayList;
 
 /**
- * Created by Muhammad on 5/26/2016.
+ * This class is a helper shared preferences so save the counter which works as ID for creating alarms.
  */
 public class SharedPreferencesHelper extends Activity{
 

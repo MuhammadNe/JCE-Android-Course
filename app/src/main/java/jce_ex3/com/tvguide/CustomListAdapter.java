@@ -15,7 +15,7 @@ import com.android.volley.toolbox.NetworkImageView;
 import java.util.List;
 
 /**
- * Created by Muhammad on 5/23/2016.
+ * CustomListAdapter for binding the list to the view
  */
 public class CustomListAdapter extends BaseAdapter {
 
@@ -66,9 +66,8 @@ public class CustomListAdapter extends BaseAdapter {
         // getting show data for the row
         Show show = showItems.get(position);
 
-        // thumbnail image
+        // thumbnail image, if the image is set then display it, if not then display an error image
         if (!show.getThumbnailUrl().equals("null")) {
-            //thumbNail.setImageResource(android.R.drawable.ic_menu_report_image);
             thumbNail.setImageUrl(show.getThumbnailUrl(), imageLoader);
         } else {
             thumbNail.setImageResource(android.R.drawable.ic_menu_report_image);

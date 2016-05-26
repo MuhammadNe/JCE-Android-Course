@@ -1,7 +1,10 @@
 package jce_ex3.com.tvguide;
 
-import java.util.ArrayList;
-
+/*
+*
+*  Class the builds the object
+*
+ */
 public class Show {
     private String name, thumbnailUrl, summary, showID, season_num, episode_num, air_date, air_time;
 

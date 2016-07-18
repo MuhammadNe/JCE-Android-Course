@@ -54,7 +54,11 @@ public class RestaurantObject {
     }
 
     public void setRate(String rate) {
-        this.rate = rate;
+        if(rate.equals("null")) {
+            this.rate = "";
+        }else {
+            this.rate = rate;
+        }
     }
 
     public String getTelNumber() {

@@ -48,7 +48,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             + KEY_RATE + " TEXT,"
             + KEY_TELNum + " TEXT,"
             + KEY_FAVOURITE + " TEXT,"
-            + KEY_DISTANCE + " TEXT,"
+            + KEY_DISTANCE + " DOUBLE,"
             + KEY_TIME + " TEXT" + ")";
 
     // Create table restaurant
@@ -61,11 +61,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             + KEY_RATE + " TEXT,"
             + KEY_TELNum + " TEXT,"
             + KEY_FAVOURITE + " TEXT,"
-            + KEY_DISTANCE + " TEXT,"
+            + KEY_DISTANCE + " DOUBLE,"
             + KEY_TIME + " TEXT" + ")";
 
     /**
-     * Reviews Table
+     * reviews Table
      */
     private static final String KEY_REVIEW = "_review";
     private static final String KEY_USER_NAME = "_name";
@@ -134,10 +134,28 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 
     // Getting All locations
-    public Cursor getAllRestaurants() {
+    public Cursor getAllRestaurants(String filter, String type) {
 
-        // Select All Query
-        String selectQuery = "SELECT  * FROM " + RESTAURANT_TABLE_NAME + ";";
+        String selectQuery;
+        if (filter.equals("Rate") && type.equals("Any Type")) {
+            // Select All Query order by rate, no type
+            selectQuery = "SELECT  * FROM " + RESTAURANT_TABLE_NAME + " ORDER BY " + KEY_RATE + " DESC" + ";";
+        } else if (filter.equals("Distance") && type.equals("Any Type")) {
+            // Select All Query order by distance, no type
+            selectQuery = "SELECT  * FROM " + RESTAURANT_TABLE_NAME + " ORDER BY " + KEY_DISTANCE + " ASC" + ";";
+        } else if (filter.equals("Rate") && !type.equals("Any Type")) {
+            // Select All Query order by rate, with type
+            selectQuery = "SELECT * FROM " + RESTAURANT_TABLE_NAME + " WHERE " + KEY_TYPE + " = '" + type + "' ORDER BY " + KEY_RATE + " DESC" + ";";
+        } else if (filter.equals("Distance") && !type.equals("Any Type")) {
+            // Select All Query order by distance, with type
+            selectQuery = "SELECT * FROM " + RESTAURANT_TABLE_NAME + " WHERE " + KEY_TYPE + " = '" + type + "' ORDER BY " + KEY_DISTANCE + " ASC" + ";";
+        } else if (filter.equals("map") && type.equals("map")) {
+            selectQuery = "SELECT * FROM " + RESTAURANT_TABLE_NAME + ";";
+        } else {
+            // else statement select all order by distance
+            selectQuery = "SELECT  * FROM " + RESTAURANT_TABLE_NAME + " ORDER BY " + KEY_DISTANCE + " ASC" + ";";
+        }
+
 
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -150,14 +168,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void addFavRestaurant(String position) {
 
         String updateQuery = "UPDATE " + RESTAURANT_TABLE_NAME + " SET " + KEY_FAVOURITE + " = 1 "
-        + "WHERE " + KEY_ID + " = " + position;
+                + "WHERE " + KEY_ID + " = " + position;
 
         SQLiteDatabase db = this.getWritableDatabase();
 
         String insertQuery = "INSERT INTO " + FAVOURITE_TABLE_NAME
                 + " SELECT * FROM " + RESTAURANT_TABLE_NAME
-                + " WHERE " + KEY_ID + " = " + position
-                + " AND NOT EXISTS (SELECT 1 FROM " + FAVOURITE_TABLE_NAME + " WHERE " + KEY_ID + " = " + position + ");";
+                + " WHERE " + KEY_NAME + " LIKE '" + position + "'"
+                + " AND NOT EXISTS (SELECT 1 FROM " + FAVOURITE_TABLE_NAME + " WHERE " + KEY_NAME + " LIKE '" + position + "');";
 
         db.execSQL(insertQuery);
         /*ContentValues values = new ContentValues();
@@ -169,10 +187,26 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.close(); // Closing database connection
 
     }
-    public Cursor getAllFavouriteRestaurants() {
 
-        // Select All Query
-        String selectQuery = "SELECT  * FROM " + FAVOURITE_TABLE_NAME +";";
+    public Cursor getAllFavouriteRestaurants(String filter, String type) {
+
+        String selectQuery;
+        if (filter.equals("Rate") && type.equals("Any Type")) {
+            // Select All Query order by rate, no type
+            selectQuery = "SELECT  * FROM " + FAVOURITE_TABLE_NAME + " ORDER BY " + KEY_RATE + " DESC" + ";";
+        } else if (filter.equals("Distance") && type.equals("Any Type")) {
+            // Select All Query order by distance, no type
+            selectQuery = "SELECT  * FROM " + FAVOURITE_TABLE_NAME + " ORDER BY " + KEY_DISTANCE + " ASC" + ";";
+        } else if (filter.equals("Rate") && !type.equals("Any Type")) {
+            // Select All Query order by rate, with type
+            selectQuery = "SELECT * FROM " + FAVOURITE_TABLE_NAME + " WHERE " + KEY_TYPE + " = '" + type + "' ORDER BY " + KEY_RATE + " DESC" + ";";
+        } else if (filter.equals("Distance") && !type.equals("Any Type")) {
+            // Select All Query order by distance, with type
+            selectQuery = "SELECT * FROM " + FAVOURITE_TABLE_NAME + " WHERE " + KEY_TYPE + " = '" + type + "' ORDER BY " + KEY_DISTANCE + " ASC" + ";";
+        } else {
+            // else statement select all order by distance
+            selectQuery = "SELECT  * FROM " + FAVOURITE_TABLE_NAME + " ORDER BY " + KEY_DISTANCE + " ASC" + ";";
+        }
 
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -182,10 +216,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     // Getting Restaurant from list
-    public Cursor getRestaurant(int position) {
+    public Cursor getRestaurant(String position) {
 
         String selectQuery = "SELECT * FROM " + RESTAURANT_TABLE_NAME
-                + " WHERE " + KEY_ID + " = " + position + ";";
+                + " WHERE " + KEY_NAME + " LIKE '" + position + "';";
 
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -194,7 +228,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return cursor;
     }
 
-    public void updateDisance(String id, String stringDistance) {
+    public void updateDisance(String id, Double stringDistance) {
 
         String selectQuery = "UPDATE " + RESTAURANT_TABLE_NAME + " SET " + KEY_DISTANCE + " = " + stringDistance
                 + " WHERE " + KEY_ID + " = " + id + ";";
@@ -230,7 +264,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 + " WHERE _lat" + " LIKE '" + lat + "' AND "
                 + "_lng LIKE '" + lng + "';";
 
-         //selectQuery = "SELECT * FROM " + REVIEW_TABLE_NAME  + ";";
+        //selectQuery = "SELECT * FROM " + REVIEW_TABLE_NAME  + ";";
 
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -238,6 +272,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         return cursor;
     }
+
     /*
             // Search queries for locations
             public Cursor searchLocation(String lat, String lng, String time) {

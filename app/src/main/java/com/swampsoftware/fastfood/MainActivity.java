@@ -12,8 +12,11 @@ import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TabHost;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -47,7 +50,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, AdapterView.OnItemSelectedListener {
 
     // Declaring objects for database and cursor
     private CallbackManager callbackManager;
@@ -56,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private Cursor cursor;
     private RestaurantCustomAdapter restaurantCustomAdapter;
     private TabHost tabHost;
+    private Spinner SPfilter, SPtype;
 
     private boolean longClick = false; //  variable that prevents onclick from happening when onlong click happened
     private boolean isResponseSuccess = false; //  variable that allows table update only when the user gets current location
@@ -83,7 +87,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         googleApiClient.connect();
 
         mListView = (ListView) findViewById(R.id.listView);
+        SPfilter = (Spinner) findViewById(R.id.SPfilter);
+        SPtype = (Spinner) findViewById(R.id.SPtype);
 
+        SPfilter.setOnItemSelectedListener(this);
+        SPtype.setOnItemSelectedListener(this);
+        String[] filter = {"Rate", "Distance"};
+        String[] filterType = {"Any Type", "FastFood", "Italian", "Mexican", "Chinese", "Middle Eastern", "Cafe"};
+        ArrayAdapter<String> arrayAdapter_filter = new ArrayAdapter<String>(getApplicationContext(),R.layout.spinner_custom, filter);
+        ArrayAdapter<String> arrayAdapter_filterType = new ArrayAdapter<String>(getApplicationContext(),R.layout.spinner_custom, filterType);
+
+        SPfilter.setAdapter(arrayAdapter_filter);
+        SPtype.setAdapter(arrayAdapter_filterType);
         // ******* TAB *******
         tabHost = (TabHost) findViewById(R.id.TabHost01);
         tabHost.setup();
@@ -98,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         db = new DatabaseHandler(this);
 
         // Get records of saves location, save them in cursor and bind them to listview
-        cursor = db.getAllRestaurants();
+        cursor = db.getAllRestaurants(SPfilter.getSelectedItem().toString(), SPtype.getSelectedItem().toString());
         restaurantCustomAdapter = new RestaurantCustomAdapter(getApplicationContext(), cursor);
         mListView.setAdapter(restaurantCustomAdapter);
         mListView.setOnItemClickListener(this); // Define onItemClickListener for listView
@@ -128,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         AccessToken accessToken = AccessToken.getCurrentAccessToken();
         if (accessToken != null) {
-            facebookGraph();
+            //facebookGraph();
         }
 
         //callback to handle the results of the login attempts and register it
@@ -142,7 +157,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 						+ "\n" +
 						"Auth Token: "
 						+ result.getAccessToken().getToken());*/
-                facebookGraph();
+                //facebookGraph();
             }
 
             @Override
@@ -159,13 +174,21 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         });
         //===================== FACEBOOK END========================
 
+        Log.d("SPTYPE",SPtype.getSelectedItem().toString());
+        Log.d("SPFILTER",SPfilter.getSelectedItem().toString());
     }
 
     protected void onResume() {
         super.onResume();
-        cursor = db.getAllRestaurants();
+
+        if (tabHost.getCurrentTab() == 0) {
+            cursor = db.getAllRestaurants(SPfilter.getSelectedItem().toString(), SPtype.getSelectedItem().toString());
+        } else if (tabHost.getCurrentTab() == 1) {
+            cursor = db.getAllFavouriteRestaurants(SPfilter.getSelectedItem().toString(), SPtype.getSelectedItem().toString());
+        }
         restaurantCustomAdapter.changeCursor(cursor);
     }
+
     protected void onPause() {
         super.onPause();
         googleApiClient.disconnect();
@@ -185,12 +208,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             if (tabId.equalsIgnoreCase("1")) {
                 // TODO : Get all restaurants data
                 Log.d("TAB TAG", "1");
-                cursor = db.getAllRestaurants();
+                cursor = db.getAllRestaurants(SPfilter.getSelectedItem().toString(), SPtype.getSelectedItem().toString());
                 restaurantCustomAdapter.changeCursor(cursor);
             } else if (tabId.equalsIgnoreCase("2")) {
                 // TODO : Get favourite restaurants
                 Log.d("TAB TAG", "2");
-                cursor = db.getAllFavouriteRestaurants();
+                cursor = db.getAllFavouriteRestaurants(SPfilter.getSelectedItem().toString(), SPtype.getSelectedItem().toString());
                 restaurantCustomAdapter.changeCursor(cursor);
             }
 
@@ -242,7 +265,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         //cursor = db.getRestaurant(position + 1);
         Intent intent = new Intent(getApplicationContext(), RestaurantActivity.class);
-        intent.putExtra("restaurant", position + 1);
+        //intent.putExtra("restaurant", position + 1);
+        intent.putExtra("restaurant", ((TextView) view.findViewById(R.id.TVresName)).getText().toString());
+        //TextView textView = (TextView) view.findViewById(R.id.TVname);
+        //intent.putExtra("restaurant", );
         startActivity(intent);
     }
 
@@ -389,9 +415,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
             // Update the current tab : All / Favourite
             if (tabHost.getCurrentTab() == 0) {
-                cursor = db.getAllRestaurants();
+                cursor = db.getAllRestaurants(SPfilter.getSelectedItem().toString(), SPtype.getSelectedItem().toString());
             } else if (tabHost.getCurrentTab() == 1) {
-                cursor = db.getAllFavouriteRestaurants();
+                cursor = db.getAllFavouriteRestaurants(SPfilter.getSelectedItem().toString(), SPtype.getSelectedItem().toString());
             }
             restaurantCustomAdapter.changeCursor(cursor);
 
@@ -400,6 +426,22 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        if (tabHost.getCurrentTab() == 0) {
+            cursor = db.getAllRestaurants(SPfilter.getSelectedItem().toString(), SPtype.getSelectedItem().toString());
+        } else if (tabHost.getCurrentTab() == 1) {
+            cursor = db.getAllFavouriteRestaurants(SPfilter.getSelectedItem().toString(), SPtype.getSelectedItem().toString());
+        }
+        restaurantCustomAdapter.changeCursor(cursor);
+
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
 
     }
 

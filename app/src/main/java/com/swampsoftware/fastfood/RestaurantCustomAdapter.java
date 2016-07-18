@@ -80,7 +80,7 @@ public class RestaurantCustomAdapter extends CursorAdapter {
 
             // Save distance inside the database for each row
             String id = cursor.getString(idIndex);
-            db.updateDisance(id, stringDistance);
+            db.updateDisance(id, Double.parseDouble(stringDistance));
         } else {
             stringDistance = "";
         }

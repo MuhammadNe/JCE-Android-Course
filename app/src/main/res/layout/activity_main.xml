@@ -8,13 +8,15 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.swampsoftware.fastfood.MainActivity">
+    tools:context="com.swampsoftware.fastfood.MainActivity"
+    android:background="@drawable/respageback">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="0.8"
-        android:orientation="vertical">
+        android:layout_weight="1.0"
+        android:orientation="vertical"
+        android:background="#fff7db">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -33,7 +35,8 @@
                     android:id="@+id/SPfilter"
                     android:layout_centerVertical="true"
                     android:layout_centerHorizontal="true"
-                    android:spinnerMode="dialog" />
+                    android:spinnerMode="dropdown"
+                    />
             </RelativeLayout>
 
             <RelativeLayout
@@ -47,15 +50,8 @@
                     android:id="@+id/SPtype"
                     android:layout_centerVertical="true"
                     android:layout_centerHorizontal="true"
-                    android:spinnerMode="dialog" />
+                    android:spinnerMode="dropdown" />
             </RelativeLayout>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1.0"
-            android:orientation="horizontal">
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -69,6 +65,7 @@
                     android:id="@+id/Bmap"
                     android:layout_centerVertical="true"
                     android:layout_centerHorizontal="true"
+                    android:textSize="10dp"
                     android:onClick="gotoMaps"/>
             </RelativeLayout>
 
@@ -84,11 +81,17 @@
                     android:id="@+id/Brefresh"
                     android:layout_centerVertical="true"
                     android:layout_centerHorizontal="true"
+                    android:textSize="12dp"
                     android:onClick="gotoRefresh"/>
             </RelativeLayout>
         </LinearLayout>
-    </LinearLayout>
 
+    </LinearLayout>
+    <View
+        android:layout_marginTop="10dp"
+        android:layout_width="fill_parent"
+        android:layout_height="2dp"
+        android:background="#c0c0c0" />
 
     <RelativeLayout
         android:layout_width="match_parent"

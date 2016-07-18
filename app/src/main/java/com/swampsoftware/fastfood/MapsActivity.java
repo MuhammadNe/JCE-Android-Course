@@ -3,6 +3,7 @@ package com.swampsoftware.fastfood;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.location.Location;
 import android.support.v4.app.FragmentActivity;
@@ -52,6 +53,7 @@ import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -64,14 +66,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private FrameLayout frameLayout;
     private AlertDialog.Builder alert;
     private String lat, lng;
+    private DatabaseHandler db;
+    private Marker marker;
+    private ArrayList<Marker> markerList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-
         frameLayout = (FrameLayout) findViewById(R.id.mapfl);
-
+        db = new DatabaseHandler(this);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -95,6 +99,51 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return false;
             }
         });
+
+    }
+
+    private void setMarkers(Cursor cursor) {
+
+        String intentName = "";
+        if (getIntent().hasExtra("name")) {
+            intentName = getIntent().getStringExtra("name");
+            Log.d("EXTRA", intentName);
+        } else {
+            Log.e("EXTRA", "NO EXTRA");
+        }
+        if (markerList != null) {
+            markerList.clear();
+        }
+
+        markerList = new ArrayList<>();
+
+        while (cursor.moveToNext()) {
+
+            int latIndex = cursor.getColumnIndex("_lat");
+            int lngIndex = cursor.getColumnIndex("_lng");
+            int nameIndex = cursor.getColumnIndex("_name");
+
+            String lat = cursor.getString(latIndex);
+            String lng = cursor.getString(lngIndex);
+            String name = cursor.getString(nameIndex);
+
+            Double _lat = Double.parseDouble(lat);
+            Double _lng = Double.parseDouble(lng);
+
+            LatLng latlng = new LatLng(_lat, _lng);
+            //marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)).position(ll).title("You're Here"));
+            marker = mMap.addMarker(new MarkerOptions().position(latlng).title(name));
+            if (name.equals(intentName)) {
+                Location location = new Location("RestarantLocation");
+                location.setLatitude(_lat);
+                location.setLongitude(_lng);
+                gotoLocation(location);
+                googleApiClient.disconnect();
+            }
+            markerList.add(marker);
+
+        }
+
     }
 
     protected void onPause() {
@@ -160,6 +209,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //LatLng sydney = new LatLng(-34, 151);
         //mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         //mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+
+        Cursor cursor = db.getAllRestaurants("map", "map");
+        setMarkers(cursor);
     }
 
     @Override
@@ -180,10 +232,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onLocationChanged(Location location) {
 
+
         lat = location.getLatitude() + "";
         lng = location.getLongitude() + "";
         Log.d("Location", location.getLatitude() + " " + location.getLongitude());
-        gotoLocation(location);
+            gotoLocation(location);
+
+
     }
 
     @Override
@@ -194,6 +249,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void startUpdate(View view) {
 
         if (!googleApiClient.isConnected()) {
+
             googleApiClient.connect();
         }
     }
@@ -225,8 +281,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             edittext.setHint("Restaurant Name");
 
 
-            String[] s = {"Choose Type", "FastFood", "Italian", "Mexican", "Chinese", "Middle Eastern", "Cafe",
-                    "Potatoes"};
+            String[] s = {"Choose Type", "FastFood", "Italian", "Mexican", "Chinese", "Middle Eastern", "Cafe"};
             final Spinner mSpinner = new Spinner(getApplicationContext());
             final ArrayAdapter<String> adp = new ArrayAdapter<String>(MapsActivity.this,
                     android.R.layout.simple_spinner_item, s);
@@ -297,7 +352,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     @Override
                     public void onResponse(JSONArray response) {
                         //Update database
-                        DatabaseHandler db = new DatabaseHandler(MapsActivity.this);
+                        db = new DatabaseHandler(MapsActivity.this);
                         RestaurantObject restaurantObject = new RestaurantObject();
                         restaurantObject.setName(name);
                         restaurantObject.setLat(lat);

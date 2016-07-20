@@ -295,7 +295,7 @@ public class RestaurantActivity extends AppCompatActivity implements AdapterView
             final TextView TVname = new TextView(getApplicationContext());
             final TextView TVtype = new TextView(getApplicationContext());
 
-            TVname.setText("Name");
+            TVname.setText("Review");
             TVtype.setText("Rate");
             TVname.setTextColor(Color.BLACK);
             TVname.setTextSize(20);

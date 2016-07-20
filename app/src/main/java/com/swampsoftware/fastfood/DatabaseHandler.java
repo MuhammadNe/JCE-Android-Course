@@ -273,31 +273,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return cursor;
     }
 
-    /*
-            // Search queries for locations
-            public Cursor searchLocation(String lat, String lng, String time) {
-
-
-                String searchQuery = "SELECT * FROM " + TABLE_NAME + " WHERE ";
-                if (!lat.isEmpty()) {
-                    searchQuery += KEY_LAT + " LIKE '" + lat + "%' AND ";
-                }
-                if (!lng.isEmpty()) {
-                    searchQuery += KEY_LNG + " LIKE '" + lng + "%' AND ";
-                }
-                if (!time.isEmpty()) {
-                    searchQuery += KEY_TIME + " LIKE '%" + time + "%';";
-                }
-                if (searchQuery.endsWith("AND ")) {
-                    searchQuery = searchQuery.substring(0, searchQuery.length() - 4);
-                }
-
-                SQLiteDatabase db = this.getWritableDatabase();
-                Cursor cursor = db.rawQuery(searchQuery, null);
-                return cursor;
-
-            }
-        */
     // Empty table
     public void emptyTable() {
 

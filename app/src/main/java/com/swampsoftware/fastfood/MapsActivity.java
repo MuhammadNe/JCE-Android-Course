@@ -64,11 +64,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LocationRequest locationRequest; //Object that requests a quality of service for location updates from fused location
     private Marker currentLocationMarker;
     private FrameLayout frameLayout;
-    private AlertDialog.Builder alert;
+    private AlertDialog.Builder alert; // alert dialog for input
     private String lat, lng;
     private DatabaseHandler db;
-    private Marker marker;
-    private ArrayList<Marker> markerList;
+    private Marker marker; // restaurants markers
+    private ArrayList<Marker> markerList; // list of all markers
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +81,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        // build googleApiClient
         googleApiClient = new GoogleApiClient.Builder(getApplicationContext())
                 .addApi(LocationServices.API)
                 .addConnectionCallbacks(this)
@@ -102,6 +103,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    // setting all restaurnts markers
     private void setMarkers(Cursor cursor) {
 
         String intentName = "";
@@ -146,6 +148,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    // disconnect googleapiclient when pause activity
     protected void onPause() {
         super.onPause();
         googleApiClient.disconnect();
@@ -205,13 +208,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Log.e("googleApiClient", "Error Connecting googleApiClient");
         }
 
-        // Add a marker in Sydney and move the camera
-        //LatLng sydney = new LatLng(-34, 151);
-        //mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        //mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
 
         Cursor cursor = db.getAllRestaurants("map", "map");
-        setMarkers(cursor);
+        setMarkers(cursor); // set markers
     }
 
     @Override

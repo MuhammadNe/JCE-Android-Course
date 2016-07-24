@@ -1,11 +1,15 @@
 package com.swampsoftware.fastfood;
 
+import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.location.Location;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
@@ -67,6 +71,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private static GoogleApiClient googleApiClient; // Object that is used to connect to google maps API, must be built to use fused location
     private LocationRequest locationRequest; //Object that requests a quality of service for location updates from fused location
     private Double lat = 0.0, lng = 0.0;
+
+    final private int PERMISSION_REQUEST_CODE = 1; // request code for permissions
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -181,6 +187,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     protected void onResume() {
         super.onResume();
 
+        // Check if user granted permissions
+        if (checkPermissions()) {
+            googleApiClient.connect(); // connect only if user granted permissions
+        } else {
+            System.out.println("> Permissions are DENIED, Requesting from user : ");
+            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.INTERNET, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+            ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE);
+        }
+
         if (tabHost.getCurrentTab() == 0) {
             cursor = db.getAllRestaurants(SPfilter.getSelectedItem().toString(), SPtype.getSelectedItem().toString());
         } else if (tabHost.getCurrentTab() == 1) {
@@ -200,6 +215,42 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             return mListView;
         }
     };
+
+    protected void onStop() {
+
+        super.onStop();
+        googleApiClient.disconnect();
+        cursor.close();
+    }
+
+    // Function to check permissions
+    // If all permissions are granted then return true;
+    // If false then grant the user to allow permissions
+    private boolean checkPermissions() {
+
+        int access_fine_location_permissionCheck = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION);
+        int Internet_permissionCheck = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.INTERNET);
+        int read_external_storage = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE);
+        int write_external_storage = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if (access_fine_location_permissionCheck == 0 && Internet_permissionCheck == 0 && read_external_storage == 0 && write_external_storage == 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    // This method as called a result for interacting with the user, check if the user allowed or denied permissions
+    public void onRequestPermissionsResult(int request_code, String[] permissions, int[] results) {
+        switch (request_code) {
+            case PERMISSION_REQUEST_CODE: {
+                if (results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED && results[1] == PackageManager.PERMISSION_GRANTED) {
+
+                    googleApiClient.connect();
+                } else {
+                }
+            }
+        }
+    }
 
     private TabHost.OnTabChangeListener mOnTabChangedListener = new TabHost.OnTabChangeListener() {
         @Override

@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Draw</string>
+    <string name="timerStart">00:000</string>
+    <string name="startButton">Start</string>
+</resources>
